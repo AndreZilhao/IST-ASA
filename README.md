@@ -6,11 +6,11 @@ Projectos de Algoritmos de Sintese de Dados
 Paul Erdos (1913-1996) foi reconhecidamente um dos maiores matemáticos do século XX.
 Para além das suas valiosas contribuições em teoria dos conjuntos, teoria dos números ou teoria
 dos grafos (entre outras áreas), Erdos ficou conhecido por ser autor de mais de 1500 artigos
-científicos. Para tal, Erd ̋os colaborou com mais de 500 outros matemáticos na co-autoria desses
+científicos. Para tal, Erdos colaborou com mais de 500 outros matemáticos na co-autoria desses
 artigos.
 Dada a extensão das colaborações de Paul Erdos, tornou-se popular calcular o número de
 Erdos dos cientistas. O número de Erdos é definido como sendo a distância colaborativa de
-uma pessoa a Paul Erdos. Considera-se que os co-autores de artigos com Paul Erd ̋os estão à
+uma pessoa a Paul Erdos. Considera-se que os co-autores de artigos com Paul Erdos estão à
 distância de 1. Os co-autores de artigos com co-autores de Paul Erdos estão à distância de 2, e
 assim sucessivamente. Considera-se que o número de Erdos de Paul Erdos é 0.
 
@@ -44,43 +44,43 @@ pessoas com número de Erdos igual a i.
 
 #Exemplos
 
-input 1
-8 9
-1
-12
-13
-34
-42
-25
-56
-67
-75
-48
+input 1  
+8 9  
+1  
+1 2  
+1 3  
+3 4  
+4 2  
+2 5  
+5 6  
+6 7  
+7 5  
+4 8  
 
-output 1
-3
-2
-2
-3
-2
+output 1  
+3  
+2  
+2  
+3  
+2  
 
-input 2
-8 9
-3
-12
-13
-34
-42
-25
-56
-67
-75
-68
+input 2  
+8 9  
+3  
+1 2  
+1 3  
+3 4  
+4 2  
+2 5  
+5 6  
+6 7  
+7 5  
+6 8  
 
-output 2
-5
-2
-1
-1
-2
-1
+output 2  
+5  
+2  
+1  
+1  
+2  
+1  
