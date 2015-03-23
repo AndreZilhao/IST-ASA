@@ -40,9 +40,9 @@ void Grafo::findErdos(int s)
 	int maxWeight = 0;
 	int arrayPesos[V];
 	for(int i = 0; i < V; i++)
-		 {
+	{
 		 	arrayPesos[i] = 0;
-		 }
+	}
 	//Coloca pesos de viagem a 0, e marca todos os colaboradores como nao visitados.
 	for(int i = 0; i < V; i++)
 		visited[i] = false;
@@ -55,7 +55,6 @@ void Grafo::findErdos(int s)
 	queue.push_back(v);
 	// Criacao de Iteradores para queue e weightSum.
 	list<int>::iterator i;
-	list<int>::iterator y;
 	while(!queue.empty())
 	{
 		// Colaborador seguinte
@@ -84,14 +83,14 @@ void Grafo::findErdos(int s)
 	for(int i = 0; i < V; i++)
 		 {
 		 	if (arrayPesos[i] != 0) 
-		 		{
-		 			//Print de M linhas [1..M]
-		 			cout << arrayPesos[i] << "\n";
+		 	{
+		 		//Print de M linhas [1..M]
+		 		cout << arrayPesos[i] << "\n";
 
-		 		}
+		 	}
 		 	else
 		 		{}
-		 }
+		 }ll
 
 }
 int main()
