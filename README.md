@@ -84,3 +84,6 @@ output 2
 1  
 2  
 1  
+
+O  relatório do projecto pode ser encontrado em:
+https://docs.google.com/document/d/1Pl83NSjmbhjkKahcBSsn6fX2t4w27FCDrkV5Q542g_o/pub
