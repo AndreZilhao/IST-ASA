@@ -30,20 +30,29 @@ using namespace std;
 class Arco
 {
 	int peso;					 // Peso do Aro
-	int vertice;					 // Vértice
+	int verticeO;				 // Vértice Origem
+	int verticeD;				 // Vértice Destino
 public:
-	Arco (int _vertice, int _peso)
+	Arco (int _verticeO, int _verticeD, int _peso)
 {	
 	peso = _peso;
-	vertice = _vertice;
+	verticeO = _verticeO;
+	verticeD = _verticeD;
+	cout << "VerticeO: " << verticeO << " VerticeD: " << verticeD  << "\n";
 };
-	int getVertice ();
-	int getPeso ();
+	int getVerticeO();
+	int getVerticeD();
+	int getPeso();
 };
 
-int Arco::getVertice()
+int Arco::getVerticeO()
 {
-	return vertice;
+	return verticeO;
+}
+
+int Arco::getVerticeD()
+{
+	return verticeO;
 }
 
 int Arco::getPeso()
@@ -59,9 +68,9 @@ public:
  	Grafo(int V);  
 	void novoArco(int v, int w, int peso);		 // Funcao para adicionar ramos ao grafo. (Vertice origem, Vertice Destino, Peso)
 	void analiseCustos(int s); 			 // Algoritmo de analise do problema. (Belman-Ford Modificado)
-	void traceGrafo(int array[], int source, char negCheck[]);			         // Função de Print do grafo para testes.
-	void relaxGrafo(int array[]);
-	void negativeCycleCheck(int array[], int source);
+//	void traceGrafo(int arrayPesos[], int source, char negCheck[]);			         // Função de Print do grafo para testes.
+//	void relaxGrafo(int arrayPesos[]);
+//	void negativeCycleCheck(int arrayPesos[], int source);
 
 };
   
@@ -74,95 +83,120 @@ public:
  							 // Adicionar novo ramo entre 2 colaboradores, para um grafo direcional.
 void Grafo::novoArco(int v, int u, int peso)
 {
-	Arco a(u, peso);
+	Arco a(v, u, peso);
 	adj[v].push_back(a);
 }
  
-void Grafo::analiseCustos(int source)
+void Grafo::analiseCustos(int _source)
 {
 	//Passos de Inicialização Belman-Ford
 	int arrayPesos[V];
+	//int backuparrayPesos[V];
+	char negCheck[V];
+	bool *visited = new bool[V];
+	int v = _source;
+	list<int> validVertices;
+	list<int> queue;
+	list<Arco>::iterator it;
+	validVertices.push_back(v);
+	for(int i = 0; i < V; i++)
+		visited[i] = false;
 	//int flagOptimizacao = false; 
 	for(int i = 0; i < V; i++)
 	{
 		arrayPesos[i] = INFINITOSUP;
+		negCheck[i] = 'U';
 	}
-	arrayPesos[source] = 0;
-	//
-	for(int i = 0; i < V; i++)
+	visited[v] = true;
+	queue.push_back(v);
+	while(!queue.empty())
 	{
-		this->relaxGrafo(arrayPesos);
-	}
-	this->negativeCycleCheck(arrayPesos, source);
-	//this->traceGrafo(arrayPesos,source);
-	
-}
-
-void Grafo::relaxGrafo(int array[])
-{
-	list<Arco>::iterator it;
-	for(int i = 0; i < V; i++)
-	{
-		if (array[i] != INFINITOSUP)
+		for (int j = 0; j < V; j++)
+			{
+				cout << visited[j] << "\n";
+				cout << "----\n";
+			}
+		v = queue.front();
+		queue.pop_front();
+		for(it = adj[v].begin(); it != adj[v].end(); it++)
 		{
-			{	
+			cout << "vertice:" << v << "\n";
+			cout << "Aro a ser Verificado: " << "\n";
+			cout << it->getVerticeO();
+			cout << it->getVerticeD();
+			cout << " " << visited[it->getVerticeD()] << "\n"; 
+			cout << visited[it->getVerticeD()] << "<--- devia ser 0\n";
+			if(!visited[it->getVerticeD()])
+			{
+				visited[it->getVerticeD()] = true;
+				cout << "vertice adicinado: " << it->getVerticeD() << "\n";
+				queue.push_back(it->getVerticeD());
+				validVertices.push_back(it->getVerticeD());
+			}
+		}
+	}
+
+	list<int>::iterator itr;
+	for (itr = validVertices.begin(); itr != validVertices.end(); itr++)
+	{
+		cout << "List of Valid Vertices:" << "\n";
+		cout << *itr << "\n";
+	}
+
+	//arrayPesos[source] = 0;
+	//RELAX
+	/*
+	list<Arco>::iterator it;
+
+	for(int i = 0; i < V; i++)
+	{
+		for(int i = 0; i < V; i++)
+		{
+			if (arrayPesos[i] < INFINITOSUP) // caso possivel
+			{
 				for (it = adj[i].begin(); it != adj[i].end(); it++)
 				{
-					if (array[it->getVertice()] > array[i] + it->getPeso())
+					if (arrayPesos[it->getVertice()] > arrayPesos[i] + it->getPeso())
+					//
 					{
-						array[it->getVertice()] = array[i] + it->getPeso();
+						negCheck[it->getVertice()] = 'V';
+						arrayPesos[it->getVertice()] = arrayPesos[i] + it->getPeso();
 					}
 				}
 			}
 		}
 	}
-}
-
-void Grafo::negativeCycleCheck(int array[], int source)
-{//TODO
-	char negCheck[V];
-	int backupArray[V];
-      	for (int i = 0; i < V; i++)
-		backupArray[i] = array[i];
-	list<Arco>::iterator it;
-	for (int j = 0; j < V; j++)
+	//NEGCHECK
+	for (int i = 0; i < V; i++)
 	{
-		for (int i = 0; i < V; i++)
+		backuparrayPesos[i] = arrayPesos [i];
+	}
+	//for (int j = 0; j < V; j++)
+	for (int i = 0; i < V; i++)
 		{
-			if (array[i]== INFINITOSUP) 
-			{
-				negCheck[i] = 'U';
-			} else 
-			{
-				negCheck[i] = 'V';
-			}
-		
 			for (it = adj[i].begin(); it != adj[i].end(); it++)
 			{
-				if (array[it->getVertice()] > array[i] + it->getPeso())
+				if (arrayPesos[it->getVertice()] > arrayPesos[i] + it->getPeso())
 				{
-					array[it->getVertice()] = array[i] + it->getPeso();
+					arrayPesos[it->getVertice()] = arrayPesos[i] + it->getPeso();
 				}
 			}
 		}
 		for (int i = 0; i < V; i++)
 		{
-			if (backupArray[i] != array[i])
+			if (backuparrayPesos[i] != arrayPesos[i])
 			{
-				negCheck[i] = 'I';
+				if (negCheck[i] != 'U') negCheck[i] = 'I';
+
 			}
 		}
-	}
-	this->traceGrafo(backupArray, source, negCheck);
-}
-
-void Grafo::traceGrafo(int array[], int source, char negCheck[])
-{
+	
+	//TRACE
 	for(int i = 0; i < V; i++)
 		 {
 		 	if (negCheck[i] == 'V')			 // IMPORTANTE: Adicionar possivel verificação para casos nulos ou remover 'if'.
 		 	{	
-				cout << array[i] << "\n";
+				cout << arrayPesos[i] << "\n";
 			} else 
 			{
 				cout << negCheck[i] << "\n";
@@ -170,7 +204,7 @@ void Grafo::traceGrafo(int array[], int source, char negCheck[])
 
 
 				
-			/*	cout << "___VERTICE: " << i+1 << "\n";
+				cout << "___VERTICE: " << i+1 << "\n";
 		 		list<Arco> queue = adj[i];
 				while(!queue.empty())
 				{
@@ -178,13 +212,14 @@ void Grafo::traceGrafo(int array[], int source, char negCheck[])
 					cout << "Peso Filho: " << queue.front().getPeso() << "\n";
 					queue.pop_front();
 				}
-				cout << "Distancia da source: " << array[i] << "\n";
+				cout << "Distancia da source: " << arrayPesos[i] << "\n";
 				
 		 	}
 		 	else
 		 		{}
-				*/
+			
 		 }
+		 */
 
 }
 int main()
