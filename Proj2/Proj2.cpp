@@ -38,7 +38,7 @@ public:
 	peso = _peso;
 	verticeO = _verticeO;
 	verticeD = _verticeD;
-	cout << "VerticeO: " << verticeO << " VerticeD: " << verticeD  << "\n";
+	//cout << "VerticeO: " << verticeO << " VerticeD: " << verticeD  << "\n";
 };
 	int getVerticeO();
 	int getVerticeD();
@@ -52,7 +52,7 @@ int Arco::getVerticeO()
 
 int Arco::getVerticeD()
 {
-	return verticeO;
+	return verticeD;
 }
 
 int Arco::getPeso()
@@ -98,10 +98,12 @@ void Grafo::analiseCustos(int _source)
 	list<int> validVertices;
 	list<int> queue;
 	list<Arco>::iterator it;
+	list<int>::iterator itr2; // outer iterator for relaxation
+	list<int>::iterator itr; // inner iterator for relaxation
 	validVertices.push_back(v);
 	for(int i = 0; i < V; i++)
 		visited[i] = false;
-	//int flagOptimizacao = false; 
+	int flagOptimizacao = false; 
 	for(int i = 0; i < V; i++)
 	{
 		arrayPesos[i] = INFINITOSUP;
@@ -111,62 +113,67 @@ void Grafo::analiseCustos(int _source)
 	queue.push_back(v);
 	while(!queue.empty())
 	{
-		for (int j = 0; j < V; j++)
+		/*for (int j = 0; j < V; j++)
 			{
 				cout << visited[j] << "\n";
 				cout << "----\n";
-			}
+			}*/
 		v = queue.front();
 		queue.pop_front();
 		for(it = adj[v].begin(); it != adj[v].end(); it++)
 		{
-			cout << "vertice:" << v << "\n";
-			cout << "Aro a ser Verificado: " << "\n";
+			/*cout << "vertice:" << v << "\n";
+			cout << "Arco a ser Verificado: " << "\n";
 			cout << it->getVerticeO();
 			cout << it->getVerticeD();
 			cout << " " << visited[it->getVerticeD()] << "\n"; 
-			cout << visited[it->getVerticeD()] << "<--- devia ser 0\n";
+			cout << visited[it->getVerticeD()] << "<--- devia ser 0\n";*/
 			if(!visited[it->getVerticeD()])
 			{
 				visited[it->getVerticeD()] = true;
-				cout << "vertice adicinado: " << it->getVerticeD() << "\n";
+				//cout << "vertice adicinado: " << it->getVerticeD() << "\n";
 				queue.push_back(it->getVerticeD());
 				validVertices.push_back(it->getVerticeD());
 			}
 		}
 	}
-
-	list<int>::iterator itr;
+	//cout << "List of Valid Vertices:" << "\n";
 	for (itr = validVertices.begin(); itr != validVertices.end(); itr++)
 	{
-		cout << "List of Valid Vertices:" << "\n";
-		cout << *itr << "\n";
+		//cout << *itr << "\n";
 	}
 
-	//arrayPesos[source] = 0;
+	arrayPesos[_source] = 0;
+	negCheck[_source] = 'V';
 	//RELAX
-	/*
-	list<Arco>::iterator it;
-
-	for(int i = 0; i < V; i++)
+	for(itr = validVertices.begin(); itr != validVertices.end(); itr++) // V-1 Relaxações sob vertices atingíveis
 	{
-		for(int i = 0; i < V; i++)
+		//cout << *itr << "\n";
+		//itr--;
+		flagOptimizacao = true;
+		for(itr2 = validVertices.begin(); itr2 != validVertices.end(); itr2++)  // Relaxação individual, passa por todos os aros.
 		{
-			if (arrayPesos[i] < INFINITOSUP) // caso possivel
-			{
-				for (it = adj[i].begin(); it != adj[i].end(); it++)
+			/*if (arrayPesos[*itr2] < INFINITOSUP) // caso possivel
+			{*/
+				//cout << *itr << "\n";
+				for (it = adj[*itr2].begin(); it != adj[*itr2].end(); it++) // ver os aros de um dado vértice.
 				{
-					if (arrayPesos[it->getVertice()] > arrayPesos[i] + it->getPeso())
+					if (arrayPesos[it->getVerticeD()] > arrayPesos[*itr2] + it->getPeso())
 					//
 					{
-						negCheck[it->getVertice()] = 'V';
-						arrayPesos[it->getVertice()] = arrayPesos[i] + it->getPeso();
+						//cout << "i reach here\n";
+						negCheck[it->getVerticeD()] = 'V';
+						arrayPesos[it->getVerticeD()] = arrayPesos[*itr2] + it->getPeso();
+						flagOptimizacao = false;
 					}
 				}
-			}
+			//}
 		}
+		if (flagOptimizacao == true) break;
+		//cout << "Relaxing\n";
 	}
-	//NEGCHECK
+
+	/*//NEGCHECK
 	for (int i = 0; i < V; i++)
 	{
 		backuparrayPesos[i] = arrayPesos [i];
@@ -176,9 +183,9 @@ void Grafo::analiseCustos(int _source)
 		{
 			for (it = adj[i].begin(); it != adj[i].end(); it++)
 			{
-				if (arrayPesos[it->getVertice()] > arrayPesos[i] + it->getPeso())
+				if (arrayPesos[it->getVerticeD()] > arrayPesos[i] + it->getPeso())
 				{
-					arrayPesos[it->getVertice()] = arrayPesos[i] + it->getPeso();
+					arrayPesos[it->getVerticeD()] = arrayPesos[i] + it->getPeso();
 				}
 			}
 		}
@@ -189,7 +196,7 @@ void Grafo::analiseCustos(int _source)
 				if (negCheck[i] != 'U') negCheck[i] = 'I';
 
 			}
-		}
+		}*/
 	
 	//TRACE
 	for(int i = 0; i < V; i++)
@@ -201,25 +208,18 @@ void Grafo::analiseCustos(int _source)
 			{
 				cout << negCheck[i] << "\n";
 			}
-
-
-				
-				cout << "___VERTICE: " << i+1 << "\n";
+			/*	cout << "___VERTICE: " << i+1 << "\n";
 		 		list<Arco> queue = adj[i];
 				while(!queue.empty())
 				{
-					cout << "Filho: " << queue.front().getVertice()+1 << "\n";
+					cout << "Filho: " << queue.front().getVerticeD()+1 << "\n";
 					cout << "Peso Filho: " << queue.front().getPeso() << "\n";
 					queue.pop_front();
 				}
 				cout << "Distancia da source: " << arrayPesos[i] << "\n";
 				
-		 	}
-		 	else
-		 		{}
-			
+		 	}*/
 		 }
-		 */
 
 }
 int main()
