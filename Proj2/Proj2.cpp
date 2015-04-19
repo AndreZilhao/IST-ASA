@@ -20,7 +20,7 @@ p - Cost of Branch.
 #include <iostream>
 #include <list>
 #include <limits.h>
-#define INFINITOSUP INT_MAX
+#define INFINITOSUP INT_MAX 
 using namespace std;
 
 
@@ -91,7 +91,7 @@ void Grafo::analiseCustos(int _source)
 {
 	//Passos de Inicialização Belman-Ford
 	int arrayPesos[V];
-	//int backuparrayPesos[V];
+	int backuparrayPesos[V];
 	char negCheck[V];
 	bool *visited = new bool[V];
 	int v = _source;
@@ -110,6 +110,7 @@ void Grafo::analiseCustos(int _source)
 		negCheck[i] = 'U';
 	}
 	visited[v] = true;
+	negCheck[_source] = 'V';
 	queue.push_back(v);
 	while(!queue.empty())
 	{
@@ -142,19 +143,16 @@ void Grafo::analiseCustos(int _source)
 	{
 		//cout << *itr << "\n";
 	}
-
 	arrayPesos[_source] = 0;
-	negCheck[_source] = 'V';
 	//RELAX
-	for(itr = validVertices.begin(); itr != validVertices.end(); itr++) // V-1 Relaxações sob vertices atingíveis
+	for(itr = validVertices.begin(); itr != validVertices.end(); itr++) // V-1 Relaxações
 	{
 		//cout << *itr << "\n";
-		//itr--;
 		flagOptimizacao = true;
 		for(itr2 = validVertices.begin(); itr2 != validVertices.end(); itr2++)  // Relaxação individual, passa por todos os aros.
 		{
-			/*if (arrayPesos[*itr2] < INFINITOSUP) // caso possivel
-			{*/
+			//if (arrayPesos[*itr2] < INFINITOSUP) // caso possivel
+			
 				//cout << *itr << "\n";
 				for (it = adj[*itr2].begin(); it != adj[*itr2].end(); it++) // ver os aros de um dado vértice.
 				{
@@ -167,37 +165,36 @@ void Grafo::analiseCustos(int _source)
 						flagOptimizacao = false;
 					}
 				}
-			//}
+			
 		}
 		if (flagOptimizacao == true) break;
-		//cout << "Relaxing\n";
 	}
 
-	/*//NEGCHECK
-	for (int i = 0; i < V; i++)
+	//NEGCHECK
+	for(itr2 = validVertices.begin(); itr2 != validVertices.end(); itr2++)  
 	{
-		backuparrayPesos[i] = arrayPesos [i];
-	}
+		backuparrayPesos[*itr2] = arrayPesos [*itr2];
+	} ////////////////////////////////////////////////////////
+
 	//for (int j = 0; j < V; j++)
-	for (int i = 0; i < V; i++)
+	
+	for(itr2 = validVertices.begin(); itr2 != validVertices.end(); itr2++)  
+	{
+		for (it = adj[*itr2].begin(); it != adj[*itr2].end(); it++)
 		{
-			for (it = adj[i].begin(); it != adj[i].end(); it++)
+			if (arrayPesos[it->getVerticeD()] > arrayPesos[*itr2] + it->getPeso())
 			{
-				if (arrayPesos[it->getVerticeD()] > arrayPesos[i] + it->getPeso())
-				{
-					arrayPesos[it->getVerticeD()] = arrayPesos[i] + it->getPeso();
-				}
+				arrayPesos[it->getVerticeD()] = arrayPesos[*itr2] + it->getPeso();
 			}
 		}
-		for (int i = 0; i < V; i++)
-		{
-			if (backuparrayPesos[i] != arrayPesos[i])
+	}
+	for(itr2 = validVertices.begin(); itr2 != validVertices.end(); itr2++)  
+	{
+		if (backuparrayPesos[*itr2] != arrayPesos[*itr2])
 			{
-				if (negCheck[i] != 'U') negCheck[i] = 'I';
-
+				negCheck[*itr2] = 'I';
 			}
-		}*/
-	
+		}
 	//TRACE
 	for(int i = 0; i < V; i++)
 		 {
