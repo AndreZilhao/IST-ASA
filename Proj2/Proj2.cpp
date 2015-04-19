@@ -1,241 +1,229 @@
 /* Andre Zilhao @ ist.utl.pt
-Projecto de Algoritmos e Sintese de Dados - Parte 2
+ASA Project - Part 2
 April 2015
-Description: Program that given an input, finds the least cost path for all nodes in the graph built by input.
-Must support negative weights on brances, and detects negative cycles (become flagged as "I" in output). Unreachable nodes
-get flagged with "U" in output.
+Description: Ansi C++ Program that given an input, finds the least cost path for all nodes in the graph built by input,
+from a source. Supports negative weights on brances, and detects negative cycles (they become flagged as "I" in output).
+Unreachable nodes get flagged with "U" in output.
 Input is as follows:
 N C
 S
 [C]lines with the format: u v p
-__
 Where:
 N - Number of Vertices
 C - Number of Brances
 S - Starting Location
-u - Start of the Branch (vertice)
-v - Destination of the Branch (vertice)
+u - Start of the Branch (vertex)
+v - Destination of the Branch (vertex)
 p - Cost of Branch.
 */
 #include <iostream>
 #include <list>
 #include <limits.h>
-#define INFINITOSUP INT_MAX 
 using namespace std;
 
 
-
-// Classe Grafo com constructor, adição de Ramos (informação guardada no grafo), e algoritmo de pesquisa.
-
-class Arco
+class Arc
 {
-	int peso;					 // Peso do Aro
-	int verticeO;				 // Vértice Origem
-	int verticeD;				 // Vértice Destino
+	int weight;
+	int vertexO;
+	int vertexD;
 public:
-	Arco (int _verticeO, int _verticeD, int _peso)
+	Arc (int _vertexO, int _vertexD, int _peso)
 {	
-	peso = _peso;
-	verticeO = _verticeO;
-	verticeD = _verticeD;
-	//cout << "VerticeO: " << verticeO << " VerticeD: " << verticeD  << "\n";
+	weight = _peso;
+	vertexO = _vertexO;
+	vertexD = _vertexD;
 };
-	int getVerticeO();
-	int getVerticeD();
+	int getVertexO();
+	int getVertexD();
 	int getPeso();
 };
 
-int Arco::getVerticeO()
+int Arc::getVertexO()
 {
-	return verticeO;
+	return vertexO;
 }
 
-int Arco::getVerticeD()
+int Arc::getVertexD()
 {
-	return verticeD;
+	return vertexD;
 }
 
-int Arco::getPeso()
+int Arc::getPeso()
 {
-	return peso;
+	return weight;
 }
 
-class Grafo
+class Graph
 {
-	int V;						 // Numero de Vertices.
-	std::list<Arco> *adj;   			 // Lista de Adjacentes.
+	int V;						 
+	std::list<Arc> *adj;
 public:
- 	Grafo(int V);  
-	void novoArco(int v, int w, int peso);		 // Funcao para adicionar ramos ao grafo. (Vertice origem, Vertice Destino, Peso)
-	void analiseCustos(int s); 			 // Algoritmo de analise do problema. (Belman-Ford Modificado)
-//	void traceGrafo(int arrayPesos[], int source, char negCheck[]);			         // Função de Print do grafo para testes.
-//	void relaxGrafo(int arrayPesos[]);
-//	void negativeCycleCheck(int arrayPesos[], int source);
-
-};
-  
-  Grafo::Grafo(int V)
+ 	Graph(int V);  
+	void newArc(int v, int u, int weight);		 
+	void costAnalisis(int s);	 
+	void traceAnalisis(int arrayWeights[], char arrayStatus[]);			         
+	bool relaxGraph(int arrayWeights[], char arrayStatus[], list<int> validVertices);
+	void negativeCycleCheck(int arrayWeights[], char arrayStatus[], list<int> validVertices);
+	list<int> optimizeGraph(int source, bool visited[]); 		
+};  
+Graph::Graph(int V)
 {
 	this->V = V;
-	adj = new list<Arco>[V];
-}
- 
- 							 // Adicionar novo ramo entre 2 colaboradores, para um grafo direcional.
-void Grafo::novoArco(int v, int u, int peso)
+	adj = new list<Arc>[V];
+}							 
+void Graph::newArc(int v, int u, int weight)
 {
-	Arco a(v, u, peso);
+	Arc a(v, u, weight);
 	adj[v].push_back(a);
 }
- 
-void Grafo::analiseCustos(int _source)
+
+/* Graph->costAnalisis: This function uses the Bellman-Ford algorithm as a base. Fristly the auxiliary variables are
+initialized, then the graph runs an optimization function to only run relaxation steps on reachable vertices.
+Finally, a series of relaxation steps are applied, and a final relaxation step is used to check for negative
+cycles. Lastly, the trace function is called for output.*/
+void Graph::costAnalisis(int _source)
 {
-	//Passos de Inicialização Belman-Ford
-	int arrayPesos[V];
-	int backuparrayPesos[V];
-	char negCheck[V];
-	bool *visited = new bool[V];
+	//INITIALIZATION STEP
+	int arrayWeights[V];
 	int v = _source;
-	list<int> validVertices;
-	list<int> queue;
-	list<Arco>::iterator it;
-	list<int>::iterator itr2; // outer iterator for relaxation
-	list<int>::iterator itr; // inner iterator for relaxation
-	validVertices.push_back(v);
-	for(int i = 0; i < V; i++)
-		visited[i] = false;
-	int flagOptimizacao = false; 
+	char arrayStatus[V];
+	bool *visited = new bool[V];
+	bool relaxedGraph = false;
+	list<int> validVertices; 
 	for(int i = 0; i < V; i++)
 	{
-		arrayPesos[i] = INFINITOSUP;
-		negCheck[i] = 'U';
+		arrayWeights[i] = INT_MAX;
+		arrayStatus[i] = 'U';
+		visited[i] = false;
 	}
+	arrayWeights[v] = 0;
+	arrayStatus[v] = 'V';
 	visited[v] = true;
-	negCheck[_source] = 'V';
+	validVertices = this->optimizeGraph(v, visited);
+	relaxedGraph = this->relaxGraph(arrayWeights, arrayStatus, validVertices);
+	if (!relaxedGraph)
+	{
+		this->negativeCycleCheck(arrayWeights, arrayStatus, validVertices);
+	}
+	this->traceAnalisis(arrayWeights, arrayStatus);
+}
+
+/* Graph->optimizeGraph: This function returns a list of vertices reachable from "source". Further operations are then
+applied on a smaller subset of vertices for increased performance.*/
+list<int> Graph::optimizeGraph(int source, bool visited[])
+{
+	int v = source;
+	list<int> queue;
+	list<Arc>::iterator it;
+	list<int> validVertices;
 	queue.push_back(v);
+	validVertices.push_back(v);
 	while(!queue.empty())
 	{
-		/*for (int j = 0; j < V; j++)
-			{
-				cout << visited[j] << "\n";
-				cout << "----\n";
-			}*/
 		v = queue.front();
 		queue.pop_front();
 		for(it = adj[v].begin(); it != adj[v].end(); it++)
 		{
-			/*cout << "vertice:" << v << "\n";
-			cout << "Arco a ser Verificado: " << "\n";
-			cout << it->getVerticeO();
-			cout << it->getVerticeD();
-			cout << " " << visited[it->getVerticeD()] << "\n"; 
-			cout << visited[it->getVerticeD()] << "<--- devia ser 0\n";*/
-			if(!visited[it->getVerticeD()])
+			if(!visited[it->getVertexD()])
 			{
-				visited[it->getVerticeD()] = true;
-				//cout << "vertice adicinado: " << it->getVerticeD() << "\n";
-				queue.push_back(it->getVerticeD());
-				validVertices.push_back(it->getVerticeD());
+				visited[it->getVertexD()] = true;
+				queue.push_back(it->getVertexD());
+				validVertices.push_back(it->getVertexD());
 			}
 		}
 	}
-	//cout << "List of Valid Vertices:" << "\n";
-	for (itr = validVertices.begin(); itr != validVertices.end(); itr++)
+	return validVertices;
+}
+
+/* Graph->relaxGraph: This function runs a series of relaxation steps on the list of valid vertices. This is the
+heaviest runtime function of the program, with a worst case complexity of O(VE). However, the use of an optimization
+flag greatly reduces the actual number of checks needed to run in most non-negative cycle graphs. The function returns
+true if the graph has been fully relaxed, false otherwise.*/
+bool Graph::relaxGraph(int arrayWeights[], char arrayStatus[], list<int> validVertices)
+{
+	int flagOptimization = true;
+	list<int>::iterator itr2; 
+	list<int>::iterator itr; 
+	list<Arc>::iterator it;
+	for(itr = validVertices.begin(); itr != validVertices.end(); itr++) 
 	{
-		//cout << *itr << "\n";
-	}
-	arrayPesos[_source] = 0;
-	//RELAX
-	for(itr = validVertices.begin(); itr != validVertices.end(); itr++) // V-1 Relaxações
-	{
-		//cout << *itr << "\n";
-		flagOptimizacao = true;
-		for(itr2 = validVertices.begin(); itr2 != validVertices.end(); itr2++)  // Relaxação individual, passa por todos os aros.
+		flagOptimization = true;
+		for(itr2 = validVertices.begin(); itr2 != validVertices.end(); itr2++) 
 		{
-			//if (arrayPesos[*itr2] < INFINITOSUP) // caso possivel
-			
-				//cout << *itr << "\n";
-				for (it = adj[*itr2].begin(); it != adj[*itr2].end(); it++) // ver os aros de um dado vértice.
+			for (it = adj[*itr2].begin(); it != adj[*itr2].end(); it++)
+			{
+				if (arrayWeights[it->getVertexD()] > arrayWeights[*itr2] + it->getPeso())
 				{
-					if (arrayPesos[it->getVerticeD()] > arrayPesos[*itr2] + it->getPeso())
-					//
-					{
-						//cout << "i reach here\n";
-						negCheck[it->getVerticeD()] = 'V';
-						arrayPesos[it->getVerticeD()] = arrayPesos[*itr2] + it->getPeso();
-						flagOptimizacao = false;
-					}
+					arrayStatus[it->getVertexD()] = 'V';
+					arrayWeights[it->getVertexD()] = arrayWeights[*itr2] + it->getPeso();
+					flagOptimization = false;
 				}
-			
+			}
 		}
-		if (flagOptimizacao == true) break;
+		if (flagOptimization == true) return true;
 	}
-
-	//NEGCHECK
-	for(itr2 = validVertices.begin(); itr2 != validVertices.end(); itr2++)  
+	return false;
+}
+/* Graph->negativeCycleCheck: This function runs a final relaxation step on the list of valid vertices. If any
+vertices are updated, then a negative cycle has been found, and all changed vertices are flagged as 'I' for output.*/
+void Graph::negativeCycleCheck(int arrayWeights[], char arrayStatus[], list<int> validVertices)
+{
+	list<int>::iterator itr;
+	list<Arc>::iterator it;
+	int backuparrayWeights[V];
+	for(itr = validVertices.begin(); itr != validVertices.end(); itr++)  
 	{
-		backuparrayPesos[*itr2] = arrayPesos [*itr2];
-	} ////////////////////////////////////////////////////////
-
-	//for (int j = 0; j < V; j++)
-	
-	for(itr2 = validVertices.begin(); itr2 != validVertices.end(); itr2++)  
+		backuparrayWeights[*itr] = arrayWeights [*itr];
+	}
+	for(itr = validVertices.begin(); itr != validVertices.end(); itr++)  
 	{
-		for (it = adj[*itr2].begin(); it != adj[*itr2].end(); it++)
+		for (it = adj[*itr].begin(); it != adj[*itr].end(); it++)
 		{
-			if (arrayPesos[it->getVerticeD()] > arrayPesos[*itr2] + it->getPeso())
+			if (arrayWeights[it->getVertexD()] > arrayWeights[*itr] + it->getPeso())
 			{
-				arrayPesos[it->getVerticeD()] = arrayPesos[*itr2] + it->getPeso();
+				arrayWeights[it->getVertexD()] = arrayWeights[*itr] + it->getPeso();
 			}
 		}
 	}
-	for(itr2 = validVertices.begin(); itr2 != validVertices.end(); itr2++)  
+	for(itr = validVertices.begin(); itr != validVertices.end(); itr++)  
 	{
-		if (backuparrayPesos[*itr2] != arrayPesos[*itr2])
-			{
-				negCheck[*itr2] = 'I';
-			}
+		if (backuparrayWeights[*itr] != arrayWeights[*itr])
+		{
+				arrayStatus[*itr] = 'I';
 		}
-	//TRACE
+	}
+}
+/* Graph->traceAnalisis: This function prints a list of V vertices with the analized output. I for negative cycle
+vertices, U for unreachable vertices, and a cost number for non-negative-cycle vertices.*/
+void Graph::traceAnalisis(int arrayWeights[], char arrayStatus[])
+{
 	for(int i = 0; i < V; i++)
 		 {
-		 	if (negCheck[i] == 'V')			 // IMPORTANTE: Adicionar possivel verificação para casos nulos ou remover 'if'.
+		 	if (arrayStatus[i] == 'V')
 		 	{	
-				cout << arrayPesos[i] << "\n";
+				cout << arrayWeights[i] << "\n";
 			} else 
 			{
-				cout << negCheck[i] << "\n";
+				cout << arrayStatus[i] << "\n";
 			}
-			/*	cout << "___VERTICE: " << i+1 << "\n";
-		 		list<Arco> queue = adj[i];
-				while(!queue.empty())
-				{
-					cout << "Filho: " << queue.front().getVerticeD()+1 << "\n";
-					cout << "Peso Filho: " << queue.front().getPeso() << "\n";
-					queue.pop_front();
-				}
-				cout << "Distancia da source: " << arrayPesos[i] << "\n";
-				
-		 	}*/
 		 }
-
 }
+/* Main: This function recieves the input as stated in the initial comment section, creates a graph and populates
+it, and calls the function costAnalisis.*/
 int main()
 {
-	int w = 0, v = 0, peso = 0, nLocalidades = 0, sedeEmpresa = 0,nCustos = 0;
-	cin >> nLocalidades;
- 	Grafo localidades(nLocalidades);
-	cin >> nCustos;
-	cin >> sedeEmpresa;
-	if(nCustos >= 0)
+	int w = 0, v = 0, weight = 0, nLocations = 0, source = 0, nBranches = 0;
+	cin >> nLocations;
+ 	Graph locations(nLocations);
+	cin >> nBranches;
+	cin >> source;
+	while(nBranches>0)
 	{
-		while(nCustos>0)
-		{
-			cin >> w >> v >> peso;
-			localidades.novoArco(w-1, v-1, peso);
-			--nCustos;
-		}
+		cin >> w >> v >> weight;
+		locations.newArc(w-1, v-1, weight);
+		--nBranches;
 	}
-	localidades.analiseCustos(sedeEmpresa-1);
-				 //Analise de custos (Bellman-Ford modificado) apartir da sede de empresa.
+	locations.costAnalisis(source-1);
 return 0;
 }
