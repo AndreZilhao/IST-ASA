@@ -1,4 +1,0 @@
- Projecto de ASA 1
- 
- - Algoritmo de verificação de caminho mais curto num grafo usando o Algoritmo BFS como base.
- - Verifica o node mais distante, e as ocorrencias de pesos entre Node inicial e Node mais distante.
