@@ -3,9 +3,10 @@ Algoritmos de Sintese de Dados - Projecto 2
 
 # Descrição da Solução
 
- - Algoritmo de verificação de caminho mais curto num grafo usando o Algoritmo BFS como base.
- - Verifica o node mais distante, e as ocorrencias de pesos entre Node inicial e Node mais distante.
- - Inclui um gerador de testes providenciado pelo docente
+ - Algoritmo de verificação de caminho com menor custo usando Bellman-Ford como base inicial.
+ - Detecção de ciclos infinitos.
+ - Inclui optimizações para reduzir o tamanho do grafo, e flags de optimização para grafos sem ciclos infinitos.
+ - Inclui um gerador de testes providenciado pelo docente.
 
 # O Problema
 
